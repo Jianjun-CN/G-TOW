@@ -1,0 +1,32 @@
+
+######### y denotes the trait, X denote the corresponding SNP sets, numper denotes the times of permutation
+
+
+G_TOW=function(y,X,numper){
+  Y=matrix(y,length(y),1)
+  I=matrix(1,length(y),1)
+  P=diag(1,length(y))-1/length(y)*I%*%t(I)
+  ##############################################################
+  D=t(X)%*%P%*%X
+  L=t(chol(D))
+  C=solve(L)%*%t(X)%*%P%*%Y%*%t(Y)%*%P%*%X%*%t(solve(L))
+  #max(eigen(C,symmetric=T)$values)
+  va=eigen(C,symmetric=T)$values
+  ve=eigen(C,symmetric=T)$vectors[,which(va==max(va))]
+  W=matrix(t(solve(L))%*%ve,ncol(L),1)
+  ##########################################
+  T1=(t(W)%*%t(X)%*%P%*%Y%*%t(Y)%*%P%*%X%*%W)/(t(W)%*%t(X)%*%P%*%X%*%W)
+  ############################# for loop #############
+  T1per=rep(0,numper)
+  for(i in 1:numper){
+    yper=sample(y)
+    Y=matrix(yper,length(y),1)
+    C=solve(L)%*%t(X)%*%P%*%Y%*%t(Y)%*%P%*%X%*%t(solve(L))
+    va=eigen(C,symmetric=T)$values
+    ve=eigen(C,symmetric=T)$vectors[,which(va==max(va))]
+    W=matrix(t(solve(L))%*%ve,ncol(L),1)
+    T1per[i]=as.numeric((t(W)%*%t(X)%*%P%*%Y%*%t(Y)%*%P%*%X%*%W)/(t(W)%*%t(X)%*%P%*%X%*%W))
+  }
+  pv=sum(T1per>as.numeric(T1))/numper
+  return(pv)
+}
